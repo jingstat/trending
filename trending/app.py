@@ -66,8 +66,52 @@ df1 = df[df['Article_ID'] == selected_article_id]
 
 # Daily reads over time
 st.subheader('Daily reads over time')
-fig = px.line(df1, x='Day', y='Daily_Reads', color='content_types', title='Daily reads over time')
+import plotly.graph_objects as go
+
+# create line trace for observed data
+trace_observed = go.Scatter(
+    x = df1['Day'],
+    y = df1['Daily_Reads'],
+    mode = 'lines',
+    name = 'Observed'
+)
+
+# create line trace for predicted data
+trace_predicted = go.Scatter(
+    x = df1['Day'],
+    y = df1['Daily_Reads']+5,
+    mode = 'lines',
+    name = 'Predicted'
+)
+df1['upper'] = df1['Daily_Reads']+10
+df1['lower'] = df1['Daily_Reads']-5
+
+# create a shaded area for the confidence interval
+trace_confidence = go.Scatter(
+    x = df1['Day'].tolist() + df1['Day'].tolist()[::-1], # x, then x reversed
+    y = df1['upper'].tolist() + df1['lower'].tolist()[::-1], # lower, then upper reversed
+    fill = 'toself',
+    fillcolor = 'rgba(0,176,246,0.2)', # adjust as desired
+    line = dict(color = 'rgba(255,255,255,0)'), # border line of the confidence interval
+    hoverinfo = "skip",
+    showlegend = False
+)
+
+# create a layout
+layout = go.Layout(
+    yaxis_title = 'y',
+    title = 'Predicted vs Observed',
+    hovermode = 'closest'
+)
+
+# create the figure and add traces
+fig = go.Figure(layout=layout)
+fig.add_trace(trace_confidence)
+fig.add_trace(trace_observed)
+fig.add_trace(trace_predicted)
+
 st.plotly_chart(fig)
+
 
 # Articles by author
 st.subheader('Articles by author')
